@@ -1,0 +1,127 @@
+//created on: Mar 25, 2014
+package cz.muni.fi.civ.newohybat.rules
+
+//list any import classes here.
+import cz.muni.fi.civ.newohybat.persistence.facade.dto.UnitDTO;
+
+
+//declare any global variables here
+global String timeout;
+
+
+declare Fight
+	attacker:UnitDTO
+	defender:UnitDTO
+end
+declare FightProposal
+	attacker:UnitDTO
+	defender:UnitDTO
+end
+
+declare UnitIdle
+	unit:UnitDTO
+end
+declare UnitDead
+	unit:UnitDTO
+	cause:Fight
+end
+declare UnitBusy
+	unit:UnitDTO
+end
+
+query "Get Dead Units"
+	accumulate(
+		UnitDead(
+			$unit:unit
+		)
+		,$deadUnits:collectList($unit)
+	)
+end
+
+query "Get Unit Dead" (UnitDTO givenUnit)
+	$dead:UnitDead(
+		unit==givenUnit
+	)
+end
+
+
+
+rule "Begin Fight Between Enemy Units On Same Tile"
+	dialect "mvel"
+	no-loop
+    when
+        $u1: UnitDTO(
+        	$unitId:id
+        	,$tile1:tile
+        	,$ownerId:owner
+        ) @watch(!*,tile)
+        $u2: UnitDTO( 
+        	id!=$unitId
+        	,tile==$tile1
+        	,owner!=$ownerId
+        ) @watch(!*,tile)
+    then
+        insertLogical(new FightProposal($u1,$u2))
+end
+
+rule "Remove Duplicit Fight"
+	dialect "mvel"
+	no-loop
+	when
+		$f:FightProposal(
+			$attacker:attacker
+			,$defender:defender
+		)
+		FightProposal(
+			attacker==$defender
+			,defender==$attacker
+		)
+		not Fight(
+			attacker==$defender
+			,defender==$attacker
+		)
+	then
+		insertLogical(new Fight($attacker,$defender))
+end
+
+rule "Process Fight"
+	dialect "mvel"
+	when
+		Fight(
+        	$attacker:attacker
+        	,$defender:defender
+        	,$attacker.attackStrength>$defender.defenseStrength
+        )
+	then
+		modify($defender){
+			setHealthPoints(0)
+		}
+		modify($attacker){
+			setHealthPoints((int)Math.floor((double)$attacker.healthPoints*0.5))
+		}
+end
+
+rule "Unit Died"
+	dialect "mvel"
+	no-loop
+	when
+		$u: UnitDTO(
+	        healthPoints<1
+	    )
+	    $f:Fight(
+	    	$u memberOf [attacker,defender]
+	    )
+	then
+		insertLogical(new UnitDead($u,$f))
+end
+
+rule "Dead Unit Removal Timeout"
+	dialect "mvel"
+	timer( expr:timeout)
+	when
+		UnitDead(
+        	$unit:unit
+        )
+	then
+		retract($unit)
+end

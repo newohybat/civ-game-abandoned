@@ -1,0 +1,27 @@
+import org.drools.process.core.datatype.impl.type.BooleanDataType;
+[
+  // the CityImprovement work item
+  [
+    "name" : "CityImprovement",
+    "displayName" : "City Improvement"
+  ],
+  // the Unit work item
+  [
+    "name" : "Unit",
+    "displayName" : "Unit"
+  ],
+  [
+  	"name" : "CityProduction",
+  	"displayName" : "City Production",
+  	"parameters": [
+  		"Persist": new BooleanDataType()
+  	]
+  ],
+  [
+  	"name" : "CityMood",
+  	"displayName" : "City Mood",
+  	"parameters" : [
+  		"Persist": new BooleanDataType()
+  	]
+  ]
+]

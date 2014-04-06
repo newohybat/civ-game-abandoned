@@ -1,0 +1,661 @@
+//created on: Feb 28, 2014
+package unitRules
+dialect "mvel"
+//list any import classes here.
+
+import cz.muni.fi.civ.newohybat.persistence.facade.dto.UnitDTO;
+import cz.muni.fi.civ.newohybat.persistence.facade.dto.UnitTypeDTO;
+import cz.muni.fi.civ.newohybat.persistence.facade.dto.TileDTO;
+import cz.muni.fi.civ.newohybat.persistence.facade.dto.TileImprovementDTO;
+import cz.muni.fi.civ.newohybat.persistence.facade.dto.PlayerDTO;
+import cz.muni.fi.civ.newohybat.persistence.facade.dto.CityDTO;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashSet;
+import org.drools.runtime.process.ProcessInstance;
+import org.drools.runtime.process.WorkflowProcessInstance;
+import cz.muni.fi.civ.newohybat.drools.events.TileImprovementEvent;
+
+//declare any global variables here
+
+declare TileImprovementEvent
+	@role(event)
+end
+
+declare UnitIdle
+	unit:UnitDTO
+end
+declare UnitDead
+	unit:UnitDTO
+end
+declare UnitBusy
+	unit:UnitDTO
+	processInstance:WorkflowProcessInstance
+end
+
+rule "Armor"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="armor")
+	then
+		modify($unit){
+			setAttackStrength(10)
+			,setDefenseStrength(5) 
+			,setMovementPoints(3)
+		}
+end 
+
+rule "Artillery"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="artillery")
+	then
+		modify($unit){
+			setAttackStrength(12)
+			,setDefenseStrength(2)
+			,setMovementPoints(2)
+		}
+end
+
+rule "Battleship"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="battleship")
+	then
+		modify($unit){
+			setAttackStrength(18)
+			,setDefenseStrength(12)
+			,setMovementPoints(4)
+		}
+end
+
+rule "Bomber"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="bomber")
+	then
+		modify($unit){
+			setAttackStrength(12)
+			,setDefenseStrength(1)
+			,setMovementPoints(8)
+		}
+end
+
+rule "Cannon"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="cannon")
+	then
+		modify($unit){
+			setAttackStrength(8)
+			,setDefenseStrength(1)
+			,setMovementPoints(1)
+		}
+end
+
+rule "Carrier"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="carrier")
+	then
+		modify($unit){
+			setAttackStrength(1)
+			,setDefenseStrength(12)
+			,setMovementPoints(5)
+		}
+end
+
+rule "Catapult"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="catapult")
+	then
+		modify($unit){
+			setAttackStrength(6)
+			,setDefenseStrength(1)
+			,setMovementPoints(1)
+		}
+end
+
+rule "Cavalry"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="cavalry")
+	then
+		modify($unit){
+			setAttackStrength(2)
+			,setDefenseStrength(1)
+			,setMovementPoints(2)
+		}
+end
+
+rule "Chariot"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="chariot")
+	then
+		modify($unit){
+			setAttackStrength(4)
+			,setDefenseStrength(1)
+			,setMovementPoints(2)
+		}
+end
+
+rule "Cruiser"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="cruiser")
+	then
+		modify($unit){
+			setAttackStrength(6)
+			,setDefenseStrength(6)
+			,setMovementPoints(6)
+		}
+end
+
+rule "Fighter"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="fighter")
+	then
+		modify($unit){
+			setAttackStrength(4)
+			,setDefenseStrength(2)
+			,setMovementPoints(10)
+		}
+end
+
+rule "Frigate"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="frigate")
+	then
+		modify($unit){
+			setAttackStrength(2)
+			,setDefenseStrength(2)
+			,setMovementPoints(3)
+		}
+end
+
+rule "Ironclad"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="ironclad")
+	then
+		modify($unit){
+			setAttackStrength(4)
+			,setDefenseStrength(4)
+			,setMovementPoints(4)
+		}
+end
+
+rule "Knight"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="knight")
+	then
+		modify($unit){
+			setAttackStrength(4)
+			,setDefenseStrength(2)
+			,setMovementPoints(2)
+		}
+end
+
+rule "Legion"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="legion")
+	then
+		modify($unit){
+			setAttackStrength(3)
+			,setDefenseStrength(1)
+			,setMovementPoints(1)
+		}
+end
+
+rule "MechanizedInfantry"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="mechanizedInfantry")
+	then
+		modify($unit){
+			setAttackStrength(6)
+			,setDefenseStrength(6)
+			,setMovementPoints(3)
+		}
+end
+
+rule "Militia"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="militia")
+	then
+		modify($unit){
+			setAttackStrength(1)
+			,setDefenseStrength(1)
+			,setMovementPoints(1)
+		}
+end
+
+rule "Musketeer"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="musketeer")
+	then
+		modify($unit){
+			setAttackStrength(2)
+			,setDefenseStrength(3)
+			,setMovementPoints(1)
+		}
+end
+
+rule "Nuclear"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="nuclear")
+	then
+		modify($unit){
+			setAttackStrength(99)
+			,setDefenseStrength(0)
+			,setMovementPoints(16)
+		}
+end
+
+rule "Phalanx"
+	salience 1000
+	no-loop
+	lock-on-active true
+	when
+		$unit:UnitTypeDTO(ident=="phalanx")
+	then
+		modify($unit){
+			setAttackStrength(1)
+			,setDefenseStrength(2)
+			,setMovementPoints(1)
+		}
+end
+
+rule "Rifleman"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="rifleman")
+	then
+		modify($unit){
+			setAttackStrength(3)
+			,setDefenseStrength(5)
+			,setMovementPoints(1)
+		}
+end
+
+rule "Sail"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="sail")
+	then
+		modify($unit){
+			setAttackStrength(1)
+			,setDefenseStrength(1)
+			,setMovementPoints(3)
+		}
+end
+
+rule "Submarine"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="submarine")
+	then
+		modify($unit){
+			setAttackStrength(8)
+			,setDefenseStrength(2)
+			,setMovementPoints(3)
+		}
+end
+
+rule "Transport"
+	no-loop
+	when
+		$unit:UnitTypeDTO(ident=="transport")
+	then
+		modify($unit){
+			setAttackStrength(1)
+			,setDefenseStrength(0)
+			,setMovementPoints(3)
+		}
+end
+
+rule "Unit Is Idle"
+	no-loop
+	when 
+		$unit: UnitDTO()
+		not UnitDead(
+			unit==$unit
+		)
+		not UnitBusy(
+			unit==$unit
+		)
+	then
+		insertLogical(new UnitIdle($unit))
+end
+
+rule "Update Actions After Unit Moves"
+	//ruleflow-group "actionsByType"
+	lock-on-active true
+	when
+		$unit:UnitDTO(
+			$type:type
+			,$unitId:id
+		) @watch(!*,tile)
+		UnitTypeDTO(
+			ident==$type
+			,$actions:actions
+		)
+	then
+		modify($unit){
+			setActions(new HashSet($actions))
+		}
+end
+rule "Unit Properties Compute"
+	no-loop
+	salience 10
+	when
+		$unit: UnitDTO(
+			$tileId:tile
+			,$type:type
+		) @watch(tile)
+		UnitTypeDTO(
+			ident==$type
+			,$attackStrength:attackStrength
+			,$defenseStrength:defenseStrength
+			,$movementPoints:movementPoints
+		)
+		TileDTO(
+			id==$tileId
+			,$defenseBonus: defenseBonus
+		)
+	then
+		modify($unit){
+			setAttackStrength($attackStrength)
+			,setDefenseStrength((int)Math.floor((1.00+($defenseBonus/100.00))*$defenseStrength))
+			,setMovementPoints($movementPoints)
+		}
+end
+
+rule "Can't Build Irrigation If Neighbour Tiles Are Not Irrigated"
+	//ruleflow-group "removeUnavailableActions"
+	lock-on-active true
+	when
+		$unit:UnitDTO(
+			actions contains "buildIrrigation"
+			,$actions:actions
+			,$tileId:tile
+			,$unitId:id
+		)
+		TileDTO(
+			id==$tileId
+			,$posX:posX
+			,$posY:posY
+		)
+		accumulate(
+			$tile:TileDTO(
+				(( posX==$posX && (posY==$posY-1 || posY==$posY+1) )
+				|| (posY==$posY && (posX==$posX-1 || posX==$posX+1)))
+				&& (
+						improvements contains "irrigation"
+						|| terrain in ("rivers","ocean")
+					)
+			)
+			;$countIrrigated: count($tile)
+			;$countIrrigated < 1
+		)
+	then
+		//System.out.println("can't irrigate");
+		$actions.remove("buildIrrigation");
+		modify($unit){
+			setActions($actions)
+		}
+		//retract($pi)
+end
+
+rule "Can't Build Railroad Without Advance Railroads"
+	when
+		$unit:UnitDTO(
+			actions contains "buildRailroad"
+			,$actions:actions
+			,$ownerId:owner
+		)
+		PlayerDTO(
+			id==$ownerId
+			, advances not contains "railroads"
+		)
+	then
+		$actions.remove("buildRailroad");
+		modify($unit){
+			setActions($actions)
+		}
+end
+
+rule "Can't Build Road On River Or Ocean"
+	when
+		$unit:UnitDTO(
+			actions contains "buildRoad"
+			,$actions:actions
+			,$tileId:tile
+		)
+		TileDTO(
+			id==$tileId
+			, terrain in ("rivers","ocean")
+		)
+	then
+		$actions.remove("buildRoad");
+		modify($unit){
+			setActions($actions)
+		}
+end
+
+rule "Can't Build Mine When Not On Hills"
+	when
+		$unit:UnitDTO(
+			actions contains "buildMine"
+			,$actions:actions
+			,$tileId:tile
+		)
+		TileDTO(
+			id==$tileId
+			, terrain != "hills"
+		)
+	then
+		$actions.remove("buildMine");
+		modify($unit){
+			setActions($actions)
+		}
+end
+
+rule "Can't Add To City When Not In A City"
+	when
+		$unit:UnitDTO(
+			actions contains "addToCity"
+			,$actions:actions
+			,$tileId:tile
+		)
+		TileDTO(
+			id==$tileId
+			, city==null
+		)
+	then
+		$actions.remove("addToCity");
+		modify($unit){
+			setActions($actions)
+		}
+end
+
+rule "Can't Establish Trade Route When Not In City"
+	salience 5
+	activation-group "removeEstablishTradeRoute"
+	when
+		$unit:UnitDTO(
+			actions contains "establishTradeRoute"
+			,$actions:actions
+			,$tileId:tile
+		)
+		TileDTO(
+			id==$tileId
+			,city==null
+		)
+	then
+		$actions.remove("establishTradeRoute");
+		modify($unit){
+			setActions($actions)
+		}
+end
+
+rule "Can't Establish Trade Route When Closer Than 10"
+	activation-group "removeEstablishTradeRoute"
+	when
+		$unit:UnitDTO(
+			actions contains "establishTradeRoute"
+			,$actions:actions
+			,$tileId:tile
+			,$unitId:id
+		)
+		CityDTO(
+			homeUnits contains $unitId
+			, $cityCentre:cityCentre
+		)
+		$homeCityTile:TileDTO(
+			id==$cityCentre
+		)
+		$currentTile:TileDTO(
+			id==$tileId
+			,distance($homeCityTile,$currentTile)<10
+		)
+		
+	then
+		$actions.remove("establishTradeRoute");
+		modify($unit){
+			setActions($actions)
+		}
+end
+rule "Can't Set Home City When Not In A City"
+	when
+		$unit:UnitDTO(
+			actions contains "setHomeCity"
+			,$actions:actions
+			,$tileId:tile
+		)
+		TileDTO(
+			id==$tileId
+			, city==null
+		)
+	then
+		$actions.remove("setHomeCity");
+		modify($unit){
+			setActions($actions)
+		}
+end
+rule "Count Unit's Distance Home"
+	when
+		$unit:UnitDTO(
+			$tileId:tile
+			,$unitId:id
+		)
+		CityDTO(
+			homeUnits contains $unitId
+			, $cityCentre:cityCentre
+		)
+		$currentTile:TileDTO(
+			id==$tileId
+		)
+		$homeCityTile:TileDTO(
+			id==$cityCentre
+		)
+	then
+		modify($unit){
+			setDistanceHome((int)Math.round(distance($currentTile,$homeCityTile)))
+		}
+end
+function double distance(TileDTO fst, TileDTO snd) {
+	return Math.sqrt(Math.pow(fst.getPosX()-snd.getPosX(),2)+Math.pow(fst.getPosY()-snd.getPosY(),2));
+}
+
+rule "Unit TileImprovement Action Cancelled"
+	when
+		$unit: UnitDTO(
+			$unitId:id
+		)
+ 		$pc:TileImprovementEvent(
+			unitId==$unitId
+		) from entry-point ActionCanceledStream
+		$pi:WorkflowProcessInstance(
+			getProcessId()=="cz.muni.fi.civ.newohybat.bpmn.buildTileImprovement"
+			,$processId:id
+			,((UnitDTO)getVariable("unit")).getId()==$unitId
+		)	
+	then
+		kcontext.getKnowledgeRuntime().abortProcessInstance($processId);
+end
+
+rule "Build Irrigation"
+	when
+		$unit: UnitDTO(
+			currentAction memberOf actions
+			, currentAction == "buildIrrigation"
+			, $ownerId:owner
+			, $unitId:id
+			, $tileId:tile
+			, $actions:actions
+		) @watch(!*,currentAction)
+		$player:PlayerDTO( 
+			id==$ownerId
+			, $turnsAvailable:turnsAvailable
+		) 
+		$imp:TileImprovementDTO(
+			ident=="irrigation"
+		)
+		$tile:TileDTO(
+			id==$tileId
+			// ,improvements not contains "irrigation"
+		)
+		not WorkflowProcessInstance(
+			getProcessId()=="cz.muni.fi.civ.newohybat.bpmn.buildTileImprovement"
+			,getVariable("unit")==$unit
+		)
+	then
+		Map params = new HashMap();
+		params.put("turnsSpent", 0);
+		params.put("unit",$unit);
+		params.put("imp",$imp);
+		params.put("tile",$tile);
+		ProcessInstance pi = kcontext.getKnowledgeRuntime().createProcessInstance("cz.muni.fi.civ.newohybat.bpmn.buildTileImprovement",params);
+		kcontext.getKnowledgeRuntime().startProcessInstance(pi.getId());
+end
+
+rule "Unit Is Busy"
+	when
+		$unit:UnitDTO()
+		$pi:WorkflowProcessInstance(
+			getProcessId()=="cz.muni.fi.civ.newohybat.bpmn.buildTileImprovement"
+			,getVariable("unit")==$unit
+		)
+	then
+		insertLogical(new UnitBusy($unit, $pi))
+end
+
+/*
+rule "Update Available Actions"
+	salience 5
+	lock-on-active true
+	when
+		$unit:UnitDTO($unitId:id) @watch(tile)
+		UnitIdle(unit==$unit)
+		not WorkflowProcessInstance(
+			getProcessId()=="cz.muni.fi.civ.newohybat.bpmn.setAvailableActions"
+			,getVariable("unitId")==$unitId
+		)
+	then
+		Map params = new HashMap();
+		params.put("unitId",$unitId);
+		ProcessInstance pi = kcontext.getKnowledgeRuntime().createProcessInstance("cz.muni.fi.civ.newohybat.bpmn.setAvailableActions",params);
+		//insert(pi);
+		kcontext.getKnowledgeRuntime().startProcessInstance(pi.getId());
+end
+*/
