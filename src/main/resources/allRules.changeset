@@ -3,21 +3,23 @@
              xs:schemaLocation='http://drools.org/drools-5.0/change-set.xsd http://anonsvn.jboss.org/repos/labs/labs/jbossrules/trunk/drools-api/src/main/resources/change-set-1.0.0.xsd' 
             >
    <add>
-      <resource source='classpath:/rules/advanceRules.drl' type='DRL' />
-      <resource source='classpath:/rules/buildUnitRules.drl' type='DRL' />
-      <resource source='classpath:/rules/cityImprovementRules.drl' type='DRL' />
-      <resource source='classpath:/rules/fightRules.drl' type='DRL' />
-      <resource source='classpath:/rules/governmentRules.drl' type='DRL' />
-      <resource source='classpath:/rules/tileRules.drl' type='DRL' />
-      <resource source='classpath:/rules/turn-city.drl' type='DRL' />
-      <resource source='classpath:/rules/unitRules.drl' type='DRL' />
-      <resource source='classpath:/processes/buildCityImprovement.bpmn' type='BPMN2' />
-      <resource source='classpath:/processes/buildTileImprovement.bpmn' type='BPMN2' />
-      <resource source='classpath:/processes/buildUnit.bpmn' type='BPMN2' />
-      <resource source='classpath:/processes/cityTurnProcess.bpmn' type='BPMN2' />
-      <resource source='classpath:/processes/discoverAdvance.bpmn' type='BPMN2' />
-      <resource source='classpath:/processes/discoveryReached.bpmn' type='BPMN2' />
-      <resource source='classpath:/processes/setAvailableActions.bpmn' type='BPMN2' />
-      <resource source='classpath:/processes/turn.bpmn' type='BPMN2' />
+      <resource source='classpath:rules/common.drl' type='DRL' />
+      <resource source='classpath:rules/advanceRules.drl' type='DRL' />
+      <resource source='classpath:rules/buildUnitRules.drl' type='DRL' />
+      <resource source='classpath:rules/cityImprovementRules.drl' type='DRL' />
+      <resource source='classpath:rules/fightRules.drl' type='DRL' />
+      <resource source='classpath:rules/governmentRules.drl' type='DRL' />
+      <resource source='classpath:rules/tileRules.drl' type='DRL' />
+      <resource source='classpath:rules/turn-city.drl' type='DRL' />
+      <resource source='classpath:rules/unitRules.drl' type='DRL' />
+      <resource source='classpath:rules/queries.drl' type='DRL' />
+      <resource source='classpath:processes/buildCityImprovement.bpmn' type='BPMN2' />
+      <resource source='classpath:processes/buildTileImprovement.bpmn' type='BPMN2' />
+      <resource source='classpath:processes/buildUnit.bpmn' type='BPMN2' />
+      <resource source='classpath:processes/cityTurnProcess.bpmn' type='BPMN2' />
+      <resource source='classpath:processes/discoverAdvance.bpmn' type='BPMN2' />
+      <resource source='classpath:processes/discoveryReached.bpmn' type='BPMN2' />
+      <resource source='classpath:processes/setAvailableActions.bpmn' type='BPMN2' />
+      <resource source='classpath:processes/turn.bpmn' type='BPMN2' />
    </add>
 </change-set>

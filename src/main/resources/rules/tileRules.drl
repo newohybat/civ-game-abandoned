@@ -1,5 +1,5 @@
 //created on: Feb 12, 2014
-package tileImprovementRules
+package cz.muni.fi.civ.newohybat.drools.rules
 
 //list any import classes here.
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.TileDTO;
@@ -439,7 +439,6 @@ rule "Tile Plains"
 	when
 		$tile:TileDTO(terrain=="plains")
 	then
-		System.out.println("counting plains");
 		modify($tile){
 			setMovementCost(1)
 			,setFoodProduction(1)
@@ -472,7 +471,6 @@ rule "Tile Plains With Mine"
 			,$improvements:improvements
 		)
 	then
-		System.out.println("changing plains into forest");
 		$improvements.remove("mine")
 		modify($tile){
 			setImprovements($improvements)
@@ -487,7 +485,6 @@ rule "Tile Plains With Mine And Horses Consequence Forest And Game"
 	when
 		$tile: TileDTO(terrain=="forest", special=="horses")
 	then
-		System.out.println("changing horses into game");
 		modify($tile){
 			setSpecial("game")
 		}
@@ -516,8 +513,6 @@ rule "Tile Plains With Horses"
 			,$resourcesProduction:resourcesProduction	
 		)
 	then
-		System.out.println("counting horses");
-			
 		modify($tile){
 			setResourcesProduction($resourcesProduction+2)
 		}
@@ -693,7 +688,4 @@ rule "Tile With Railroad"
 			,setResourcesProduction((Integer)Math.floor($resourcesProduction*1.5))
 			,setMovementCost(0)
 		}
-end
-query "getTile"(Long x, Long y)
-	$tile:TileDTO(posX==x,posY==y)
 end

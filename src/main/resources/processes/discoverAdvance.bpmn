@@ -29,8 +29,8 @@
     <property id="player" itemSubjectRef="_playerItem"/>
 
     <!-- nodes -->
-    <endEvent id="_16" name="End" />
     <startEvent id="_1" name="StartProcess" />
+    <endEvent id="_16" name="End" />
     <endEvent id="_6" name="End" >
         <terminateEventDefinition />
     </endEvent>
@@ -90,11 +90,11 @@ kcontext.setVariable("researchSpent",researchSpent+$spentThisTurn);</script>
 
   <bpmndi:BPMNDiagram>
     <bpmndi:BPMNPlane bpmnElement="cz.muni.fi.civ.newohybat.bpmn.discoverAdvance" >
-      <bpmndi:BPMNShape bpmnElement="_16" >
-        <dc:Bounds x="405" y="311" width="48" height="48" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape bpmnElement="_1" >
         <dc:Bounds x="36" y="134" width="48" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_16" >
+        <dc:Bounds x="405" y="311" width="48" height="48" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape bpmnElement="_6" >
         <dc:Bounds x="671" y="242" width="48" height="48" />

@@ -46,6 +46,7 @@ public class CityConsumptionRulesJUnitTest extends BaseJUnitTest {
 		KnowledgeBuilderConfiguration config = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration();
         config.setOption(PropertySpecificOption.ALWAYS);
 		KnowledgeBuilder kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder(config);
+		kbuilder.add(ResourceFactory.newClassPathResource("rules/common.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("rules/turn-city.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("rules/governmentRules.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("rules/cityImprovementRules.drl"), ResourceType.DRL);

@@ -1,5 +1,7 @@
 //created on: Feb 3, 2014
-package turn.city
+package cz.muni.fi.civ.newohybat.drools.rules
+
+dialect "mvel"
 
 //list any import classes here.
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.CityDTO;
@@ -13,6 +15,9 @@ import cz.muni.fi.civ.newohybat.persistence.facade.dto.PlayerDTO;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.GovernmentDTO;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.UnitTypeDTO;
 
+import cz.muni.fi.civ.newohybat.drools.events.TurnEvent;
+import cz.muni.fi.civ.newohybat.drools.events.CityImprovementEvent;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,13 +29,37 @@ import java.util.HashSet;
 global Integer foodStockLimit
 global ArrayList<Long> unitsToDisband
 
+rule "Update Productions For Added City"
+	when
+		CityDTO(
+			$cityId:id
+		) @watch(!*)
+	then
+		insertLogical(new UpdateCityProduction($cityId))
+		insertLogical(new CityImprovementChange($cityId))
+end
+
+rule "Update Productions On New Improvement"
+	when 
+		CityDTO(
+			$cityId:id
+		)
+		CityImprovementEvent(
+			cityId==$cityId
+		) from entry-point "ActionCompletedStream"
+	then
+		insertLogical(new UpdateCityProduction($cityId))
+		insertLogical(new CityImprovementChange($cityId))
+end
 
 rule "Get City Disorder"
 	ruleflow-group "cityMood"
 	dialect "mvel"
 	no-loop
     when
-        $city : CityDTO ( peopleUnhappy > peopleHappy)
+        $city : CityDTO (
+        	peopleUnhappy > peopleHappy
+        ) @watch(peopleUnhappy, peopleHappy)
     then
         modify($city) {
 		   setDisorder(true)
@@ -42,7 +71,10 @@ rule "Get City We Love Ruler Day"
 	ruleflow-group "cityMood"
 	no-loop
 	when
-		$city : CityDTO( size>=3, peopleUnhappy==0, peopleHappy>= (peopleContent + peopleEntertainers+ peopleTaxmen+ peopleScientists))
+		$city : CityDTO(
+			size>=3, peopleUnhappy==0
+			, peopleHappy>= (peopleContent + peopleEntertainers+ peopleTaxmen+ peopleScientists)
+		) @watch(size, peopleUnhappy, peopleContent, peopleEntertainers, peopleTaxmen, peopleScientists)
 	then
 		modify($city){
 			setWeLoveDay(true);
@@ -54,8 +86,16 @@ rule "Tile With Enemy Unit Is Not Managed Anymore"
 	ruleflow-group "updateCityTiles"
 	no-loop
     when
-        $city:CityDTO ($tiles:managedTiles, $cityOwner: owner, $peopleEntertainers:peopleEntertainers)
-        UnitDTO( $tile:tile memberOf $tiles, owner != $cityOwner)
+        $city:CityDTO (
+        	$tiles:managedTiles
+        	, $cityOwner: owner
+        	, $peopleEntertainers:peopleEntertainers
+        ) @watch(owner)
+        UnitDTO(
+        	tile memberOf $tiles
+        	,$tile:tile
+        	, owner != $cityOwner
+        )
     then
     	modify($city) {
         	getManagedTiles().remove($tile),
@@ -69,13 +109,19 @@ rule "City Improvements Upkeep"
 	ruleflow-group "manageConsumptions"
 	no-loop
 	when
-		$city: CityDTO($improvements:improvements)
+		$city: CityDTO(
+			$improvements:improvements
+			,$cityId:id
+		)
 		accumulate(
 			CityImprovementDTO(
 				ident memberOf $improvements
 				,$upkeepCost:upkeepCost
 			)
 			, $sumUpkeep:sum($upkeepCost)
+		)
+		CityImprovementChange(
+			cityId==$cityId
 		)
 	then
 		modify($city){
@@ -88,24 +134,30 @@ rule "Basic City Tiles Production"
 	ruleflow-group "manageProductions"
 	activation-group "cityProduction"
 	when
-		$city:CityDTO($managedTiles:managedTiles)
+		$city:CityDTO(
+			$managedTiles:managedTiles
+			,$cityId:id
+		)
 		accumulate(
 					TileDTO (
 							id memberOf $managedTiles
 							,$foodProd:foodProduction
 							,$resourcesProd:resourcesProduction
 							,$tradeProd:tradeProduction
-					)
+					) @watch(foodProduction,resourcesProduction,tradeProduction)
 					,$sumFood : sum($foodProd)
 					,$sumResources : sum($resourcesProd)
 					,$sumTrade : sum($tradeProd)
+					,$tiles:collectList($foodProd)
 		)
+		UpdateCityProduction(cityId==$cityId)
 	then
 		modify($city){
 			setFoodProduction($sumFood)
 			,setResourcesProduction($sumResources)
 			,setTradeProduction($sumTrade)
 		}
+		System.out.println($tiles)
 end
 
 rule "Trade To Luxuries/Taxes/Research Resolution"
@@ -116,13 +168,13 @@ rule "Trade To Luxuries/Taxes/Research Resolution"
 		$city:CityDTO(
 			$tradeProduction:tradeProduction
 			,$ownerId:owner
-		)
+		) @watch(tradeProduction)
 		PlayerDTO(
 			id==$ownerId
 			, $taxesRatio:taxesRatio
 			, $luxuriesRatio:luxuriesRatio
 			, $researchRatio:researchRatio
-		) 
+		) @watch(taxesRatio, luxuriesRatio, researchRatio)
 	then
 		$luxuriesAmount = (Integer)Math.floor((double)$tradeProduction * $luxuriesRatio/100)
 		$taxesAmount = (Integer)Math.floor((double)$tradeProduction * $taxesRatio/100)
@@ -148,6 +200,7 @@ rule "Taxes Surplus To Treasury"
 			id==$ownerId
 			, $treasury: treasury			
 		)
+		TurnEvent() from entry-point "GameControlStream"
 	then
 		modify($owner){
 			setTreasury($treasury + ($taxesIncome-$improvementsUpkeep))
@@ -169,6 +222,7 @@ rule "Taxes Shortage Covered From Treasury"
 			, treasury >= ($improvementsUpkeep-$taxesIncome)
 			, $treasury: treasury			
 		)
+		TurnEvent() from entry-point "GameControlStream"
 	then
 		modify($owner){
 			setTreasury($treasury + ($taxesIncome-$improvementsUpkeep))
@@ -192,6 +246,7 @@ rule "Taxes Shortage Not Covered From Treasury"
 			, treasury < ($improvementsUpkeep-$taxesIncome)
 			, $treasury: treasury			
 		)
+		TurnEvent() from entry-point "GameControlStream"
 	then
 		// set treasury to zero and remove one improvement
 		modify($owner){
@@ -218,6 +273,7 @@ rule "Research Of City To Global"
 			id==$ownerId
 			, $globalResearch: research			
 		)
+		TurnEvent() from entry-point "GameControlStream"
 	then
 		modify($owner){
 			setResearch($globalResearch + $researchAmount)
@@ -231,7 +287,7 @@ rule "Population Point Requires 2 Food Units"
 		$city: CityDTO(
 			$size: size
 			, $foodConsumption:foodConsumption
-		)
+		)@watch(size)
 	then
 		modify($city){
 			setFoodConsumption($foodConsumption + $size*2)
@@ -248,7 +304,8 @@ rule "Food Surplus To Stock"
 			, $foodProduction : foodProduction
 			, $foodConsumption : foodConsumption
 			, $foodStock : foodStock
-		)
+		) @watch(foodProduction,foodConsumption)
+		TurnEvent() from entry-point "GameControlStream"
 	then
 		modify($city){
 			setFoodStock($foodStock + ($foodProduction-$foodConsumption))
@@ -269,6 +326,7 @@ rule "Food Shortage Not Covered From Stock"
 			, $foodStock : foodStock
 			, $size: size
 		)
+		TurnEvent() from entry-point "GameControlStream"
 	then
 		modify($city){
 			setFoodStock(0)
@@ -287,6 +345,7 @@ rule "Food Stock Overflows Expand City"
 			,$size:size
 			,$peopleContent: peopleContent
 		)
+		TurnEvent() from entry-point "GameControlStream"
 	then
 		modify($city){
 			setSize($size+1)
@@ -307,6 +366,7 @@ rule "Food Stock Overflows Expand City With Granary"
 			,$size:size
 			,$peopleContent: peopleContent
 		)
+		TurnEvent() from entry-point "GameControlStream"
 	then
 		modify($city){
 			setSize($size+1)
@@ -330,6 +390,7 @@ rule "Food Stock Overflows City Reached Population Limit Without Aqueduct"
 			,$peopleContent: peopleContent
 			,improvements not contains "aqueduct"
 		)
+		TurnEvent() from entry-point "GameControlStream"
 	then
 		modify($city){
 			setFoodStock(foodStockLimit)
@@ -346,7 +407,7 @@ rule "Entertainers Increase Luxuries"
 			peopleEntertainers>0
 			,$peopleEntertainers:peopleEntertainers
 			,$luxuriesAmount: luxuriesAmount
-		)
+		) @watch(peopleEntertainers, luxuriesAmount)
 	then
 		modify($city){
 			setLuxuriesAmount($luxuriesAmount + 2*$peopleEntertainers)
@@ -363,7 +424,7 @@ rule "Taxmen Increase Taxes"
 			peopleTaxmen>0
 			, $peopleTaxmen:peopleTaxmen
 			, $taxesAmount: taxesAmount
-		)
+		) @watch(peopleTaxmen, taxesAmount)
 	then
 		modify($city){
 			setTaxesAmount($taxesAmount + 2*$peopleTaxmen)
@@ -380,7 +441,7 @@ rule "Scientists Increase Research"
 			peopleScientists>0
 			,$peopleScientists: peopleScientists
 			,$researchAmount: researchAmount
-		)
+		) @watch (peopleScientists, researchAmount)
 	then
 		modify($city){
 			setResearchAmount($researchAmount + 2*$peopleScientists)
@@ -399,7 +460,7 @@ rule "Luxuries Make People Happier"
 			,$peopleContent: peopleContent
 			,$peopleUnhappy: peopleUnhappy
 			,$luxuriesSpent: luxuriesSpent
-		)
+		) @watch(luxuriesAmount)
 	then
 		$luxuriesEffect = (Integer)Math.floor($luxuries/2)
 		$contentToHappy = Math.min($luxuriesEffect, $peopleContent)
@@ -421,7 +482,7 @@ rule "Support Of Units To Resources Consumption"
 		$city: CityDTO(
 			$resourcesConsumption:resourcesConsumption
 			,$unitsSupport: unitsSupport
-		)
+		)@watch(unitsSupport)
 	then
 		modify($city){
 			setResourcesConsumption($resourcesConsumption + $unitsSupport)
@@ -435,7 +496,7 @@ rule "Resources Surplus"
 		$city: CityDTO(
 			$resourcesProduction:resourcesProduction
 			,$resourcesConsumption:unitsSupport
-		)
+		) @watch(resourcesProduction, unitsSupport)
 	then
 		modify($city){
 			setResourcesSurplus($resourcesProduction-$resourcesConsumption)
@@ -464,6 +525,7 @@ rule "Resources Shortage Disband Farthest Unit"
 			ident==$type
 			, military==true
 		)
+		TurnEvent() from entry-point "GameControlStream"
 	then
 		$homeUnits.remove($id)
 		unitsToDisband.add($id)

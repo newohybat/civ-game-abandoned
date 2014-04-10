@@ -46,6 +46,7 @@ public class UnitRulesJUnitTest extends BaseJUnitTest {
 		KnowledgeBuilderConfiguration config = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration();
         config.setOption(PropertySpecificOption.ALWAYS);
 		KnowledgeBuilder kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder(config);
+		kbuilder.add(ResourceFactory.newClassPathResource("rules/common.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("rules/unitRules.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("processes/buildTileImprovement.bpmn"), ResourceType.BPMN2);
 		kbuilder.add(ResourceFactory.newClassPathResource("processes/setAvailableActions.bpmn"), ResourceType.BPMN2);

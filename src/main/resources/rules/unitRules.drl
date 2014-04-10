@@ -1,5 +1,5 @@
 //created on: Feb 28, 2014
-package unitRules
+package cz.muni.fi.civ.newohybat.drools.rules
 dialect "mvel"
 //list any import classes here.
 
@@ -14,27 +14,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import org.drools.runtime.process.ProcessInstance;
 import org.drools.runtime.process.WorkflowProcessInstance;
-import cz.muni.fi.civ.newohybat.drools.events.TileImprovementEvent;
 
 //declare any global variables here
-
-declare TileImprovementEvent
-	@role(event)
-end
-
-declare UnitIdle
-	unit:UnitDTO
-end
-declare UnitDead
-	unit:UnitDTO
-end
-declare UnitBusy
-	unit:UnitDTO
-	processInstance:WorkflowProcessInstance
-end
-
 rule "Armor"
-	no-loop
+	no-loop 
 	when
 		$unit:UnitTypeDTO(ident=="armor")
 	then

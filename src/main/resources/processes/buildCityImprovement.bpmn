@@ -21,6 +21,7 @@
 
     <extensionElements>
      <tns:import name="cz.muni.fi.civ.newohybat.persistence.facade.dto.TileImprovementDTO" />
+     <tns:import name="cz.muni.fi.civ.newohybat.drools.events.CityImprovementEvent" />
     </extensionElements>
     <!-- process variables -->
     <property id="imp" itemSubjectRef="_impItem"/>
@@ -49,7 +50,8 @@ city.setResourcesSurplus(city.resourcesSurplus-$spentNow);</script>
     <exclusiveGateway id="_7" name="Gateway" gatewayDirection="Diverging" />
     <scriptTask id="_8" name="Complete" >
       <script>city.getImprovements().add(imp.ident);
-city.setCurrentImprovement(null);</script>
+city.setCurrentImprovement(null);
+//kcontext.getKnowledgeRuntime().getWorkingMemoryEntryPoint("ActionCompletedStream").insert(new CityImprovementEvent(city.getId()))</script>
     </scriptTask>
     <endEvent id="_9" name="End" />
     <endEvent id="_10" name="End" >

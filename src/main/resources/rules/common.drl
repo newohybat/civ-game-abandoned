@@ -1,0 +1,65 @@
+//created on: Apr 7, 2014
+package cz.muni.fi.civ.newohybat.drools.rules
+
+//list any import classes here.
+import cz.muni.fi.civ.newohybat.persistence.facade.dto.UnitDTO;
+
+import org.drools.runtime.process.WorkflowProcessInstance;
+
+import cz.muni.fi.civ.newohybat.drools.events.TileImprovementEvent;
+import cz.muni.fi.civ.newohybat.drools.events.CityImprovementEvent;
+import cz.muni.fi.civ.newohybat.drools.events.TurnEvent;
+import cz.muni.fi.civ.newohybat.drools.events.UnitEvent;
+import cz.muni.fi.civ.newohybat.drools.events.AdvanceEvent;
+
+//declare any global variables here
+
+declare Fight
+	attacker:UnitDTO
+	defender:UnitDTO
+end
+declare FightProposal
+	attacker:UnitDTO
+	defender:UnitDTO
+end
+declare UnitIdle
+	unit:UnitDTO
+end
+declare UnitDead
+	unit:UnitDTO
+	cause:Fight
+end
+declare UnitBusy
+	unit:UnitDTO
+	action:WorkflowProcessInstance
+end
+declare TurnEvent
+	@role(event)
+end
+
+declare TileImprovementEvent
+	@role(event)
+end
+
+declare UnitEvent
+	@role( event )
+	//@expires( 1ms )
+end
+
+declare AdvanceEvent
+	@role( event )
+end
+declare CityImprovementEvent
+	@role( event )
+end
+declare UpdateCityProduction
+	cityId:Long
+end
+
+declare CityImprovementChange
+	cityId:Long
+end
+
+declare AdvanceReached
+	playerId:Long
+end

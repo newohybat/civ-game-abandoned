@@ -27,6 +27,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import cz.muni.fi.civ.newohybat.drools.events.TurnEvent;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.CityDTO;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.CityImprovementDTO;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.PlayerDTO;
@@ -46,6 +47,8 @@ public class CitySurplusRulesJUnitTest extends BaseJUnitTest {
 		KnowledgeBuilderConfiguration config = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration();
         config.setOption(PropertySpecificOption.ALWAYS);
 		KnowledgeBuilder kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder(config);
+
+		kbuilder.add(ResourceFactory.newClassPathResource("rules/common.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("rules/turn-city.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("rules/governmentRules.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("rules/cityImprovementRules.drl"), ResourceType.DRL);
@@ -192,6 +195,8 @@ public class CitySurplusRulesJUnitTest extends BaseJUnitTest {
 		ksession.insert(city2); 
 		ksession.insert(player);
 
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+		
 		((StatefulKnowledgeSessionImpl)ksession).session.getAgenda().activateRuleFlowGroup("manageSurpluses");
 		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("Taxes Surplus To Treasury"));
 		
@@ -221,6 +226,8 @@ public class CitySurplusRulesJUnitTest extends BaseJUnitTest {
 		ksession.insert(city);
 		ksession.insert(player);
 
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+				
 		((StatefulKnowledgeSessionImpl)ksession).session.getAgenda().activateRuleFlowGroup("manageSurpluses");
 		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("Taxes Shortage Covered From Treasury"));
 		
@@ -254,6 +261,8 @@ public class CitySurplusRulesJUnitTest extends BaseJUnitTest {
 		ksession.insert(city);
 		ksession.insert(player);
 
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+		
 		((StatefulKnowledgeSessionImpl)ksession).session.getAgenda().activateRuleFlowGroup("manageSurpluses");
 		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("Taxes Shortage Not Covered From Treasury"));
 		
@@ -283,6 +292,8 @@ public class CitySurplusRulesJUnitTest extends BaseJUnitTest {
 		ksession.insert(city);
 		ksession.insert(player);
 
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+		
 		((StatefulKnowledgeSessionImpl)ksession).session.getAgenda().activateRuleFlowGroup("manageSurpluses");
 		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("Research Of City To Global"));
 		
@@ -314,6 +325,7 @@ public class CitySurplusRulesJUnitTest extends BaseJUnitTest {
 		ksession.insert(city);
 		ksession.insert(player);
 
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
 		((StatefulKnowledgeSessionImpl)ksession).session.getAgenda().activateRuleFlowGroup("manageSurpluses");
 		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("Food Surplus To Stock"));
 		
@@ -344,6 +356,8 @@ public class CitySurplusRulesJUnitTest extends BaseJUnitTest {
 		ksession.insert(city);
 		ksession.insert(player);
 
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+		
 		((StatefulKnowledgeSessionImpl)ksession).session.getAgenda().activateRuleFlowGroup("affectPopulation");
 		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("Food Shortage Not Covered From Stock"));
 		

@@ -1,13 +1,11 @@
 //created on: Mar 16, 2014
-package advanceRules
+package cz.muni.fi.civ.newohybat.drools.rules
 
 //list any import classes here.
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.PlayerDTO;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.AdvanceDTO;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.CityDTO;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.GovernmentDTO;
-
-import cz.muni.fi.civ.newohybat.drools.events.AdvanceEvent;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -19,88 +17,67 @@ import org.drools.runtime.process.WorkflowProcessInstance;
 
 //declare any global variables here
 
-declare AdvanceEvent
-	@role( event )
-end
-rule "Advance Init"
-	no-loop
+rule "Advance Finished"
 	dialect "mvel"
 	when
-		$player:PlayerDTO(
-			$playerId:id
-    	) @watch(!*)
-    	$ad:AdvanceEvent(
-    		playerId==$playerId
-    	) from entry-point InitStream
+		$ad:AdvanceEvent(
+			$playerId:playerId
+		) from entry-point ActionFinishedStream
 	then
-		Map params = new HashMap();
-		params.put("player",$player);
-		ProcessInstance pi = kcontext.getKnowledgeRuntime().createProcessInstance("cz.muni.fi.civ.newohybat.bpmn.discoveryReached",params);
-		kcontext.getKnowledgeRuntime().startProcessInstance(pi.getId());
+		insertLogical(new AdvanceReached($playerId))
 end
 
-rule "Discovery Reached"
-	no-loop
+rule "Set Enabled Advances"
 	dialect "mvel"
-	when
-		$player:PlayerDTO(
-			$playerId:id
-    	) @watch(!*)
-    	$ad:AdvanceEvent(
-    		playerId==$playerId
-    	) from entry-point ActionFinishedStream
-	then
-		Map params = new HashMap();
-		params.put("player",$player);
-		ProcessInstance pi = kcontext.getKnowledgeRuntime().createProcessInstance("cz.muni.fi.civ.newohybat.bpmn.discoveryReached",params);
-		kcontext.getKnowledgeRuntime().startProcessInstance(pi.getId());
-end
-
-rule "Set Advances Available To Research"
-	dialect "mvel"
-	ruleflow-group "enableNextResearch"
-	lock-on-active
+	agenda-group "processNewAdvance"
+	lock-on-active true
+	auto-focus true
 	when
     	$player:PlayerDTO(
-    		currentAdvance==null
+    		$playerId:id
+    		,currentAdvance==null
     		,$advances:advances
-    	) @watch(currentAdvance)
+    	) @watch(!*,currentAdvance)
     	accumulate(
     		$advance:AdvanceDTO(
     			ident memberOf $advances
     			,$enabledAdvances:enabledAdvances 
-    		)
+    		)@watch(!*)
     		and $str:String() from $enabledAdvances
     		,$allEnabledAdvances:collectSet($str)	
     	)
+    	AdvanceReached(
+    		playerId==$playerId
+    	)
     then
-    	
     	$adv = new HashSet($allEnabledAdvances);
     	$adv.removeAll($advances);
-    	System.out.println($player.enabledAdvances);
-    	System.out.println($player.advances);
-    	System.out.println($adv);
     	modify($player){
     		setEnabledAdvances($adv)
     	}
     	
 end
-rule "Set Available Governments"
+rule "Set Enabled Governments"
 	dialect "mvel"
-	ruleflow-group "enableDiscoveries"
-	lock-on-active
+	agenda-group "processNewAdvance"
+	lock-on-active true
+	auto-focus true
 	when
     	$player:PlayerDTO(
     		currentAdvance==null
     		,$advances:advances
+    		,$playerId:id
     	) @watch(currentAdvance)
     	accumulate(
     		$advance:AdvanceDTO(
     			ident memberOf $advances
     			,$enabledGovernments:enabledGovernments 
-    		)
+    		)@watch(!*)
     		and $str:String() from $enabledGovernments
     		,$allEnabledGovernments:collectSet($str)	
+    	)
+    	AdvanceReached(
+    		playerId==$playerId
     	)
     then
     	
@@ -111,15 +88,17 @@ rule "Set Available Governments"
     	
 end
 
-rule "Set Recent Improvements"
-	lock-on-active
+rule "Set Enabled Improvements"
 	dialect "mvel"
-	ruleflow-group "enableDiscoveries"
+	agenda-group "processNewAdvance"
+	lock-on-active true
+	auto-focus true
 	when
 		$player:PlayerDTO( 
 			currentAdvance==null
 	    	,$advances:advances
 	    	,$cityIds: cities
+	    	,$playerId:id
 	    ) @watch(currentAdvance)
 	    $city:CityDTO(
 	    	id memberOf $cityIds
@@ -132,7 +111,9 @@ rule "Set Recent Improvements"
     		) @watch(!*)
     		and $imp:String() from $enabledCityImprovements
     		,$allEnabledImprovements:collectSet($imp)
-    		
+    	)
+    	AdvanceReached(
+    		playerId==$playerId
     	)
 	then
 		
@@ -142,14 +123,17 @@ rule "Set Recent Improvements"
 			setEnabledImprovements($imps)
 		}
 end
-rule "Set Recent Unit Types"
+
+rule "Set Enabled Unit Types"
 	dialect "mvel"
-	//lock-on-active
-	ruleflow-group "enableDiscoveries"
+	agenda-group "processNewAdvance"
+	lock-on-active true
+	auto-focus true
 	when
 		$player:PlayerDTO( 
 	    	$advances:advances
 	    	,$cityIds: cities
+	    	,$playerId: id
 	    ) @watch(currentAdvance)
 	    $city:CityDTO(
 	    	id memberOf $cityIds
@@ -160,8 +144,10 @@ rule "Set Recent Unit Types"
     			,$enabledUnitTypes:enabledUnitTypes
     		) @watch(!*) 
     		and $type:String() from $enabledUnitTypes
-    		,$allEnabledUnitTypes:collectSet($type)
-    		
+    		,$allEnabledUnitTypes:collectSet($type)	
+    	)
+    	AdvanceReached(
+    		playerId==$playerId
     	)
 	then
 		$types = new HashSet($allEnabledUnitTypes);
@@ -173,7 +159,6 @@ end
 rule "Discover Advance"
 	dialect "mvel"
 	no-loop
-	lock-on-active true
 	when
 		$player:PlayerDTO(
 			currentAdvance!=null

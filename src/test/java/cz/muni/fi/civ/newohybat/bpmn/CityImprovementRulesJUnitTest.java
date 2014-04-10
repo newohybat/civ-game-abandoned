@@ -16,11 +16,14 @@ import org.drools.builder.KnowledgeBuilderConfiguration;
 import org.drools.builder.KnowledgeBuilderFactory;
 import org.drools.builder.ResourceType;
 import org.drools.builder.conf.PropertySpecificOption;
+import org.drools.event.DebugProcessEventListener;
 import org.drools.event.rule.AfterActivationFiredEvent;
 import org.drools.event.rule.AgendaEventListener;
+import org.drools.event.rule.DebugAgendaEventListener;
 import org.drools.io.ResourceFactory;
 import org.drools.runtime.process.ProcessInstance;
 import org.drools.runtime.rule.FactHandle;
+import org.drools.runtime.rule.WorkingMemoryEntryPoint;
 import org.jbpm.workflow.instance.WorkflowProcessInstance;
 import org.junit.After;
 import org.junit.Assert;
@@ -30,6 +33,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import cz.muni.fi.civ.newohybat.drools.events.CityImprovementEvent;
+import cz.muni.fi.civ.newohybat.drools.events.TurnEvent;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.CityDTO;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.CityImprovementDTO;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.PlayerDTO;
@@ -105,6 +109,8 @@ public class CityImprovementRulesJUnitTest extends BaseJUnitTest {
     
     @Test
     public void testWaitForNewTurnToComplete(){
+    	ksession.addEventListener(new DebugAgendaEventListener());
+    	ksession.addEventListener(new DebugProcessEventListener());
     	// Add mock eventlistener
     	AgendaEventListener ael = mock( AgendaEventListener.class );
     	ksession.addEventListener( ael );
@@ -137,7 +143,14 @@ public class CityImprovementRulesJUnitTest extends BaseJUnitTest {
 		
 		assertProcessInstanceActive(pId, ksession);
 		
-		ksession.signalEvent("turn-new", null,pId);
+		ksession.signalEvent("turn-new", null);
+		
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		assertProcessInstanceCompleted(pId, ksession);
 		

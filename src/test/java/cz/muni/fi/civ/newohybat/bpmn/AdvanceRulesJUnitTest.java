@@ -18,8 +18,11 @@ import org.drools.builder.KnowledgeBuilderFactory;
 import org.drools.builder.ResourceType;
 import org.drools.builder.conf.PropertySpecificOption;
 import org.drools.conf.EventProcessingOption;
+import org.drools.event.DebugProcessEventListener;
 import org.drools.event.rule.AfterActivationFiredEvent;
 import org.drools.event.rule.AgendaEventListener;
+import org.drools.event.rule.DebugAgendaEventListener;
+import org.drools.event.rule.DebugWorkingMemoryEventListener;
 import org.drools.io.ResourceFactory;
 import org.drools.runtime.process.ProcessInstance;
 import org.drools.runtime.rule.FactHandle;
@@ -50,9 +53,9 @@ public class AdvanceRulesJUnitTest extends BaseJUnitTest {
         config.setOption(PropertySpecificOption.ALWAYS);
         
 		KnowledgeBuilder kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder(config);
+		kbuilder.add(ResourceFactory.newClassPathResource("rules/common.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("rules/advanceRules.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("processes/discoverAdvance.bpmn"), ResourceType.BPMN2);
-		kbuilder.add(ResourceFactory.newClassPathResource("processes/discoveryReached.bpmn"), ResourceType.BPMN2);
 		KnowledgeBaseConfiguration baseConfig = KnowledgeBaseFactory.newKnowledgeBaseConfiguration();
 		baseConfig.setOption( EventProcessingOption.STREAM );
 		kbase = KnowledgeBaseFactory.newKnowledgeBase(baseConfig);
@@ -64,6 +67,7 @@ public class AdvanceRulesJUnitTest extends BaseJUnitTest {
 	}
 	@After
 	public void after(){
+		ksession.halt();
 		ksession.dispose();
 	}
 	private static CityDTO getCity(Long id, String name){
@@ -128,6 +132,9 @@ public class AdvanceRulesJUnitTest extends BaseJUnitTest {
     }
     @Test
     public void testWaitForNewTurnToComplete(){
+    	ksession.addEventListener(new DebugAgendaEventListener());
+//    	ksession.addEventListener(new DebugWorkingMemoryEventListener());
+//    	ksession.addEventListener(new DebugProcessEventListener());
     	// Add mock eventlistener
     	AgendaEventListener ael = mock( AgendaEventListener.class );
     	ksession.addEventListener( ael );
@@ -136,6 +143,7 @@ public class AdvanceRulesJUnitTest extends BaseJUnitTest {
     	player.setResearch(205);
     	player.getAdvances().add("basicOne");
     	AdvanceDTO basicOne = getAdvance("basicOne", 100);
+    	player.getEnabledAdvances().add("consecutiveOne");
     	basicOne.getEnabledAdvances().add("consecutiveOne");
     	AdvanceDTO consecutiveOne = getAdvance("consecutiveOne", 100);
     	consecutiveOne.getEnabledAdvances().add("consecutiveTwo");
@@ -156,10 +164,10 @@ public class AdvanceRulesJUnitTest extends BaseJUnitTest {
 		FactHandle pH = ksession.insert(player);
 		ksession.insert(city);
 		
-		WorkingMemoryEntryPoint ep = ksession.getWorkingMemoryEntryPoint("InitStream");
-		Assert.assertNotNull( ep );
-		ep.insert(new AdvanceEvent(player.getId()));
-//    	
+//		WorkingMemoryEntryPoint ep = ksession.getWorkingMemoryEntryPoint("InitStream");
+//		Assert.assertNotNull( ep );
+//		ep.insert(new AdvanceEvent(player.getId()));
+////    	
 		ksession.fireAllRules();
 		player.setCurrentAdvance("consecutiveOne");
 		ksession.update(pH, player);
@@ -183,9 +191,11 @@ public class AdvanceRulesJUnitTest extends BaseJUnitTest {
 		ksession.signalEvent("turn-new", null, pId);
 		
 		assertProcessInstanceCompleted(pId, ksession);
+		
 		ksession.fireAllRules();
 		
 		Assert.assertTrue("Player has reached advance.",player.getAdvances().contains(consecutiveOne.getIdent()));
+		System.out.println(player.getEnabledAdvances());
 		Assert.assertTrue("Player can discover advance.",player.getEnabledAdvances().containsAll(consecutiveOne.getEnabledAdvances()));
 
 		Assert.assertTrue("Player can build bank.",city.getEnabledImprovements().contains("bank"));

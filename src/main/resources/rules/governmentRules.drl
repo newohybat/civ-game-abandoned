@@ -1,5 +1,5 @@
 //created on: Feb 15, 2014
-package governmentRules
+package cz.muni.fi.civ.newohybat.drools.rules
 
 //list any import classes here.
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.CityDTO;
@@ -8,11 +8,9 @@ import cz.muni.fi.civ.newohybat.persistence.facade.dto.UnitDTO;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.UnitTypeDTO;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.TileDTO;
 
-
 //declare any global variables here
 
  
-
 
 rule "Despotism Units Support"
 	dialect "mvel"
@@ -62,18 +60,25 @@ rule "Despotism Restricted City Tiles Production"
 	salience 5
 	when
 		PlayerDTO($owner:id, government=="despotism")
-		$city:CityDTO(owner==$owner,$managedTiles:managedTiles)
+		$city:CityDTO(
+			owner==$owner
+			,$managedTiles:managedTiles
+			,$cityId:id
+		)
 		accumulate(
 					TileDTO (
 							id memberOf $managedTiles
+							,$id:id
 							,$foodProd:foodProduction
 							,$resourcesProd:resourcesProduction
 							,$tradeProd:tradeProduction
-					)
+					) @watch(foodProduction,resourcesProduction,tradeProduction)
 					,$sumFood : sum(($foodProd<3)?$foodProd:($foodProd-1))
 					,$sumResources : sum(($resourcesProd<3)?$resourcesProd:($resourcesProd-1))
 					,$sumTrade : sum(($tradeProd<3)?$tradeProd:($tradeProd-1))
+					,$tiles: collectList($foodProd)
 		)
+		UpdateCityProduction(cityId==$cityId)
 	then
 		modify($city){
 			setFoodProduction($sumFood)
@@ -89,18 +94,24 @@ rule "Despotism WeLoveDay City Tiles Production"
 	salience 10
 	when
 		PlayerDTO($owner:id,government == "despotism")
-		$city:CityDTO(owner==$owner,$managedTiles:managedTiles, weLoveDay==true)
-		accumulate(
+		$city:CityDTO(
+			owner==$owner
+			,$managedTiles:managedTiles
+			, weLoveDay==true
+			,$cityId:id
+		)
+		accumulate( 
 					TileDTO (
 							id memberOf $managedTiles
 							,$foodProd:foodProduction
 							,$resourcesProd:resourcesProduction
 							,$tradeProd:tradeProduction
-					)
+					) @watch(foodProduction,resourcesProduction,tradeProduction)
 					,$sumFood : sum($foodProd)
 					,$sumResources : sum($resourcesProd)
 					,$sumTrade : sum($tradeProd)
 		)
+		UpdateCityProduction(cityId==$cityId)
 	then
 		modify($city){
 			setFoodProduction($sumFood)
@@ -160,18 +171,24 @@ rule "Monarchy WeLoveDay City Tiles Production"
 	salience 5
 	when
 		PlayerDTO($owner:id, government=="monarchy")
-		$city:CityDTO(owner==$owner,$managedTiles:managedTiles,weLoveDay==true)
+		$city:CityDTO(
+			owner==$owner
+			,$managedTiles:managedTiles
+			,weLoveDay==true
+			,$cityId:id
+		)
 		accumulate(
 					TileDTO (
 							id memberOf $managedTiles
 							,$foodProd:foodProduction
 							,$resourcesProd:resourcesProduction
 							,$tradeProd:tradeProduction
-					)
+					) @watch(foodProduction,resourcesProduction,tradeProduction)
 					,$sumFood : sum($foodProd)
 					,$sumResources : sum($resourcesProd)
 					,$sumTrade : sum(($tradeProd<1)?$tradeProd:($tradeProd+1))
 		)
+		UpdateCityProduction(cityId==$cityId)
 	then
 		modify($city){
 			setFoodProduction($sumFood)
@@ -225,18 +242,24 @@ rule "Communism WeLoveDay City Tiles Production"
 	salience 5
 	when
 		PlayerDTO($owner:id, government=="communism")
-		$city:CityDTO(owner==$owner,$managedTiles:managedTiles,weLoveDay==true)
+		$city:CityDTO(
+			owner==$owner
+			,$managedTiles:managedTiles
+			,weLoveDay==true
+			,$cityId:id
+		)
 		accumulate(
 					TileDTO (
 							id memberOf $managedTiles
 							,$foodProd:foodProduction
 							,$resourcesProd:resourcesProduction
 							,$tradeProd:tradeProduction
-					)
+					) @watch(foodProduction,resourcesProduction,tradeProduction)
 					,$sumFood : sum($foodProd)
 					,$sumResources : sum($resourcesProd)
 					,$sumTrade : sum(($tradeProd<1)?$tradeProd:($tradeProd+1))
 		)
+		UpdateCityProduction(cityId==$cityId)
 	then
 		modify($city){
 			setFoodProduction($sumFood)
@@ -252,18 +275,23 @@ rule "The Republic City Tiles Production"
 	salience 5
 	when
 		PlayerDTO($owner:id, government=="theRepublic")
-		$city:CityDTO(owner==$owner,$managedTiles:managedTiles)
+		$city:CityDTO(
+			owner==$owner
+			,$managedTiles:managedTiles
+			,$cityId:id
+		)
 		accumulate(
 					TileDTO (
 							id memberOf $managedTiles
 							,$foodProd:foodProduction
 							,$resourcesProd:resourcesProduction
 							,$tradeProd:tradeProduction
-					)
+					) @watch(foodProduction,resourcesProduction,tradeProduction)
 					,$sumFood : sum($foodProd)
 					,$sumResources : sum($resourcesProd)
 					,$sumTrade : sum(($tradeProd<1)?$tradeProd:($tradeProd+1))
 		)
+		UpdateCityProduction(cityId==$cityId)
 	then
 		modify($city){
 			setFoodProduction($sumFood)
@@ -383,18 +411,23 @@ rule "Democracy City Tiles Production"
 	salience 5
 	when
 		PlayerDTO($owner:id, government=="democracy")
-		$city:CityDTO(owner==$owner,$managedTiles:managedTiles)
+		$city:CityDTO(
+			owner==$owner
+			,$managedTiles:managedTiles
+			,$cityId:id
+		)
 		accumulate(
 					TileDTO (
 							id memberOf $managedTiles
 							,$foodProd:foodProduction
 							,$resourcesProd:resourcesProduction
 							,$tradeProd:tradeProduction
-					)
+					) @watch(foodProduction,resourcesProduction,tradeProduction)
 					,$sumFood : sum($foodProd)
 					,$sumResources : sum($resourcesProd)
 					,$sumTrade : sum(($tradeProd<1)?$tradeProd:($tradeProd+1))
 		)
+		UpdateCityProduction(cityId==$cityId)
 	then
 		modify($city){
 			setFoodProduction($sumFood)

@@ -1,5 +1,5 @@
 //created on: Mar 25, 2014
-package cz.muni.fi.civ.newohybat.rules
+package cz.muni.fi.civ.newohybat.drools.rules
 
 //list any import classes here.
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.UnitDTO;
@@ -7,27 +7,6 @@ import cz.muni.fi.civ.newohybat.persistence.facade.dto.UnitDTO;
 
 //declare any global variables here
 global String timeout;
-
-
-declare Fight
-	attacker:UnitDTO
-	defender:UnitDTO
-end
-declare FightProposal
-	attacker:UnitDTO
-	defender:UnitDTO
-end
-
-declare UnitIdle
-	unit:UnitDTO
-end
-declare UnitDead
-	unit:UnitDTO
-	cause:Fight
-end
-declare UnitBusy
-	unit:UnitDTO
-end
 
 query "Get Dead Units"
 	accumulate(
@@ -41,7 +20,7 @@ end
 query "Get Unit Dead" (UnitDTO givenUnit)
 	$dead:UnitDead(
 		unit==givenUnit
-	)
+	) 
 end
 
 

@@ -18,6 +18,7 @@ import org.drools.builder.ResourceType;
 import org.drools.builder.conf.PropertySpecificOption;
 import org.drools.event.rule.AfterActivationFiredEvent;
 import org.drools.event.rule.AgendaEventListener;
+import org.drools.event.rule.DebugAgendaEventListener;
 import org.drools.impl.StatefulKnowledgeSessionImpl;
 import org.drools.io.ResourceFactory;
 import org.junit.After;
@@ -27,6 +28,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import cz.muni.fi.civ.newohybat.drools.events.TurnEvent;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.CityDTO;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.PlayerDTO;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.TileDTO;
@@ -43,6 +45,8 @@ public class CityProductionRulesJUnitTest extends BaseJUnitTest {
 		KnowledgeBuilderConfiguration config = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration();
         config.setOption(PropertySpecificOption.ALWAYS);
 		KnowledgeBuilder kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder(config);
+
+		kbuilder.add(ResourceFactory.newClassPathResource("rules/common.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("rules/turn-city.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("rules/governmentRules.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("rules/cityImprovementRules.drl"), ResourceType.DRL);
@@ -135,7 +139,7 @@ public class CityProductionRulesJUnitTest extends BaseJUnitTest {
 		ksession.insert(tile2);
 		ksession.insert(tile3);
 //		ProcessInstance processInstance = ksession.startProcess("cz.muni.fi.civ.newohybat.bpmn.cityturnprocess");
-		
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
 		((StatefulKnowledgeSessionImpl)ksession).session.getAgenda().activateRuleFlowGroup("manageProductions");
 		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("Basic City Tiles Production"));
 		
@@ -175,6 +179,8 @@ public class CityProductionRulesJUnitTest extends BaseJUnitTest {
 
 		ksession.insert(owner);
 //		ProcessInstance processInstance = ksession.startProcess("cz.muni.fi.civ.newohybat.bpmn.cityturnprocess");
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+		
 		((StatefulKnowledgeSessionImpl)ksession).session.getAgenda().activateRuleFlowGroup("manageProductions");
 		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("Despotism Restricted City Tiles Production"));
 		
@@ -213,6 +219,8 @@ public class CityProductionRulesJUnitTest extends BaseJUnitTest {
 		ksession.insert(tile3);
 
 		ksession.insert(owner);
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+		
 //		ProcessInstance processInstance = ksession.startProcess("cz.muni.fi.civ.newohybat.bpmn.cityturnprocess");
 		((StatefulKnowledgeSessionImpl)ksession).session.getAgenda().activateRuleFlowGroup("manageProductions");
 		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("Basic City Tiles Production"));
@@ -253,6 +261,8 @@ public class CityProductionRulesJUnitTest extends BaseJUnitTest {
 		ksession.insert(tile3);
 
 		ksession.insert(owner);
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+		
 //		ProcessInstance processInstance = ksession.startProcess("cz.muni.fi.civ.newohybat.bpmn.cityturnprocess");
 		((StatefulKnowledgeSessionImpl)ksession).session.getAgenda().activateRuleFlowGroup("manageProductions");
 		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("Basic City Tiles Production"));
@@ -270,7 +280,9 @@ public class CityProductionRulesJUnitTest extends BaseJUnitTest {
     }
 	@Test
     public void testCityTheRepublicProduction(){
-    	AgendaEventListener ael = mock( AgendaEventListener.class );
+    	
+		ksession.addEventListener(new DebugAgendaEventListener());
+		AgendaEventListener ael = mock( AgendaEventListener.class );
     	ksession.addEventListener( ael );
     	
     	// prepare test data
@@ -292,6 +304,8 @@ public class CityProductionRulesJUnitTest extends BaseJUnitTest {
 		ksession.insert(tile3);
 
 		ksession.insert(owner);
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+		
 		//ProcessInstance processInstance = ksession.startProcess("cz.muni.fi.civ.newohybat.bpmn.cityturnprocess");
 		((StatefulKnowledgeSessionImpl)ksession).session.getAgenda().activateRuleFlowGroup("manageProductions");
 		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("The Republic City Tiles Production"));
@@ -331,6 +345,9 @@ public class CityProductionRulesJUnitTest extends BaseJUnitTest {
 		ksession.insert(tile3);
 
 		ksession.insert(owner);
+		
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+		
 		((StatefulKnowledgeSessionImpl)ksession).session.getAgenda().activateRuleFlowGroup("manageProductions");
 		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("Democracy City Tiles Production"));
 		
@@ -376,7 +393,7 @@ public class CityProductionRulesJUnitTest extends BaseJUnitTest {
     }
 	@Test
     public void testCityWithFactoryAndPowerPlant(){
-    	AgendaEventListener ael = mock( AgendaEventListener.class );
+		AgendaEventListener ael = mock( AgendaEventListener.class );
     	ksession.addEventListener( ael );
     	
     	// prepare test data
@@ -400,6 +417,7 @@ public class CityProductionRulesJUnitTest extends BaseJUnitTest {
 		List<String> firedRules = getFiredRules(aafe.getAllValues());
 		
 //		assertProcessInstanceCompleted(processInstance.getId(), ksession);
+//		Assert.assertTrue("Hydro Plant fired",firedRules.contains("Hydro Plant"));
 		Assert.assertTrue("Factory And Some Power Plant Fired",firedRules.contains("Factory And Some Power Plant"));
 		Assert.assertTrue("City Food Production Is Not Affected By Factory.",city.getFoodProduction()==5);
 		Assert.assertTrue("City Resources Production Is Affected By Factory.",city.getResourcesProduction()==10);
@@ -453,7 +471,7 @@ public class CityProductionRulesJUnitTest extends BaseJUnitTest {
     	ksession.insert(city);
 		
 		((StatefulKnowledgeSessionImpl)ksession).session.getAgenda().activateRuleFlowGroup("manageProductions");
-		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("Manufacturing Plant Obsoletes Factory"));
+		ksession.fireAllRules();
 		
 		
 		
@@ -462,9 +480,9 @@ public class CityProductionRulesJUnitTest extends BaseJUnitTest {
 		List<String> firedRules = getFiredRules(aafe.getAllValues());
 		
 //		assertProcessInstanceCompleted(processInstance.getId(), ksession);
-		Assert.assertTrue("Manufacturing Plant Obsoletes Factory Fired",firedRules.contains("Manufacturing Plant Obsoletes Factory"));
+		Assert.assertTrue("Manufacturing Plant Obsoletes Factory Fired",firedRules.contains("Manufacturing Plant"));
+		Assert.assertFalse("Factory Didn't Fire",firedRules.contains("Factory"));
 		
-		Assert.assertFalse("factory removed",city.getImprovements().contains("factory"));
     }
 	@Test
     public void testCityManufacturingPlant(){
@@ -524,6 +542,7 @@ public class CityProductionRulesJUnitTest extends BaseJUnitTest {
 		List<String> firedRules = getFiredRules(aafe.getAllValues());
 		
 //		assertProcessInstanceCompleted(processInstance.getId(), ksession);
+//		Assert.assertTrue("Hydro Plant Fired",firedRules.contains("Hydro Plant"));
 		Assert.assertTrue("Manufacturing Plant With A Power Plant Fired",firedRules.contains("Manufacturing Plant With A Power Plant"));
 		Assert.assertTrue("City Food Production Is Not Affected By Factory.",city.getFoodProduction()==5);
 		Assert.assertTrue("City Resources Production Is Affected By Factory.",city.getResourcesProduction()==15);

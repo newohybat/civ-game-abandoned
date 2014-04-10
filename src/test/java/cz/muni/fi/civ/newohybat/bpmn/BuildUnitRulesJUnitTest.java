@@ -31,6 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import cz.muni.fi.civ.newohybat.drools.events.TurnEvent;
 import cz.muni.fi.civ.newohybat.drools.events.UnitEvent;
 import cz.muni.fi.civ.newohybat.jbpm.itemhandler.UnitWorkItemHandler;
 import cz.muni.fi.civ.newohybat.persistence.facade.dto.CityDTO;
@@ -51,6 +52,7 @@ public class BuildUnitRulesJUnitTest extends BaseJUnitTest {
 		KnowledgeBuilderConfiguration config = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration();
         config.setOption(PropertySpecificOption.ALWAYS);
 		KnowledgeBuilder kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder(config);
+		kbuilder.add(ResourceFactory.newClassPathResource("rules/common.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("rules/buildUnitRules.drl"), ResourceType.DRL);
 		kbuilder.add(ResourceFactory.newClassPathResource("processes/buildUnit.bpmn"), ResourceType.BPMN2);
 		
@@ -130,7 +132,7 @@ public class BuildUnitRulesJUnitTest extends BaseJUnitTest {
 		ksession.insert(unitType);
 		ksession.insert(city);
 		
-		ksession.fireAllRules(new RuleNameMatchesAgendaFilter("City Start Build Unit"));
+		ksession.fireAllRules();
 		List<ProcessInstance> processes = (List<ProcessInstance>)ksession.getProcessInstances();
 		
 		
@@ -146,7 +148,10 @@ public class BuildUnitRulesJUnitTest extends BaseJUnitTest {
 		
 		assertProcessInstanceActive(pId, ksession);
 		
-		ksession.signalEvent("turn-new", null,pId);
+		//ksession.signalEvent("turn-new", null,pId);
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+		ksession.fireAllRules();
+		
 		
 		assertProcessInstanceCompleted(pId, ksession);
 		
@@ -205,9 +210,9 @@ public class BuildUnitRulesJUnitTest extends BaseJUnitTest {
 	}
     @Test
     public void testCompleteAfterThreeTurns(){
-    	ksession.addEventListener(new DebugWorkingMemoryEventListener());
-    	ksession.addEventListener(new DebugAgendaEventListener());
-    	
+//    	ksession.addEventListener(new DebugWorkingMemoryEventListener());
+//    	ksession.addEventListener(new DebugAgendaEventListener());
+//    	
     	// Add mock eventlistener
     	AgendaEventListener ael = mock( AgendaEventListener.class );
     	ksession.addEventListener( ael );
@@ -237,16 +242,19 @@ public class BuildUnitRulesJUnitTest extends BaseJUnitTest {
 		Assert.assertTrue("One Process Should Be Active",processes.size()==1);
 		WorkflowProcessInstance p = (WorkflowProcessInstance)processes.get(0);
 		
-		ksession.signalEvent("turn-new", null);
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+		ksession.fireAllRules();
 		assertProcessInstanceActive(p.getId(), ksession);
 		
 		city.setResourcesSurplus(60);
 		ksession.update(cityHandle, city);
-		ksession.signalEvent("turn-new", null);
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+		ksession.fireAllRules();
 		assertProcessInstanceActive(p.getId(), ksession);
 		city.setResourcesSurplus(60);
 		ksession.update(cityHandle, city);
-		ksession.signalEvent("turn-new", null);
+		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
+		ksession.fireAllRules();
 		
 		assertProcessInstanceCompleted(p.getId(), ksession);
 		UnitDTO unit = (UnitDTO)p.getVariable("unit");
