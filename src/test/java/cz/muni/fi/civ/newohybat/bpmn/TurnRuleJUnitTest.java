@@ -162,6 +162,7 @@ public class TurnRuleJUnitTest extends BaseJUnitTest {
     }
     @Test
     public void testTurn(){
+    	ksession.addEventListener(new DebugAgendaEventListener());
     	AgendaEventListener ael = mock( AgendaEventListener.class );
     	ksession.addEventListener( ael );
     	
@@ -202,13 +203,13 @@ public class TurnRuleJUnitTest extends BaseJUnitTest {
 		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
 		
 		HashMap<String,Object> params = new HashMap<String, Object>();
-		params.put("timer-period", "5s");
+		params.put("timer-delay", "5s");
 		ProcessInstance pi = ksession.startProcess("cz.muni.fi.civ.newohybat.bpmn.turn", params);
 		
 		ksession.fireAllRules();
 		
 		try {
-			Thread.sleep(4000);
+			Thread.sleep(2000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

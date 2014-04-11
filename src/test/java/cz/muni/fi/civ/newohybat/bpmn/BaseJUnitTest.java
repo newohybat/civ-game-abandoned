@@ -114,7 +114,10 @@ public abstract class BaseJUnitTest {
 	            		}
 	            	}
             	}
-            	event.getKnowledgeRuntime().retract(event.getKnowledgeRuntime().getFactHandle(event.getProcessInstance()));
+            	FactHandle fh = event.getKnowledgeRuntime().getFactHandle(event.getProcessInstance());
+            	if(fh!=null){
+            		event.getKnowledgeRuntime().retract(fh);
+            	}
 	            	
 //            	((StatefulKnowledgeSession) event.getKnowledgeRuntime()).fireAllRules();
             	

@@ -400,7 +400,7 @@ public class GameServiceImpl implements GameService{
 	public void startGame() {
 		ksession.getWorkingMemoryEntryPoint("GameControlStream").insert(new TurnEvent());
 		HashMap<String,Object>params = new HashMap<String, Object>();
-		params.put("timer-period", "10s");
+		params.put("timer-delay", "10s");
 		ProcessInstance pi = ksession.createProcessInstance("cz.muni.fi.civ.newohybat.bpmn.turn", params);
 		ksession.startProcessInstance(pi.getId());
 		

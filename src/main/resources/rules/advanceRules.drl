@@ -29,15 +29,14 @@ end
 
 rule "Set Enabled Advances"
 	dialect "mvel"
-	agenda-group "processNewAdvance"
-	lock-on-active true
-	auto-focus true
 	when
+    	AdvanceReached(
+    		$playerId:playerId
+    	)
     	$player:PlayerDTO(
-    		$playerId:id
-    		,currentAdvance==null
+    		id==$playerId
     		,$advances:advances
-    	) @watch(!*,currentAdvance)
+    	) @watch(!*)
     	accumulate(
     		$advance:AdvanceDTO(
     			ident memberOf $advances
@@ -46,28 +45,24 @@ rule "Set Enabled Advances"
     		and $str:String() from $enabledAdvances
     		,$allEnabledAdvances:collectSet($str)	
     	)
-    	AdvanceReached(
-    		playerId==$playerId
-    	)
+    	
     then
     	$adv = new HashSet($allEnabledAdvances);
     	$adv.removeAll($advances);
     	modify($player){
     		setEnabledAdvances($adv)
-    	}
-    	
+    	}	
 end
 rule "Set Enabled Governments"
 	dialect "mvel"
-	agenda-group "processNewAdvance"
-	lock-on-active true
-	auto-focus true
 	when
+    	AdvanceReached(
+    		$playerId:playerId
+    	)
     	$player:PlayerDTO(
-    		currentAdvance==null
+    		id==$playerId
     		,$advances:advances
-    		,$playerId:id
-    	) @watch(currentAdvance)
+    	) @watch(!*)
     	accumulate(
     		$advance:AdvanceDTO(
     			ident memberOf $advances
@@ -75,9 +70,6 @@ rule "Set Enabled Governments"
     		)@watch(!*)
     		and $str:String() from $enabledGovernments
     		,$allEnabledGovernments:collectSet($str)	
-    	)
-    	AdvanceReached(
-    		playerId==$playerId
     	)
     then
     	
@@ -90,16 +82,15 @@ end
 
 rule "Set Enabled Improvements"
 	dialect "mvel"
-	agenda-group "processNewAdvance"
-	lock-on-active true
-	auto-focus true
 	when
-		$player:PlayerDTO( 
-			currentAdvance==null
+		AdvanceReached(
+    		$playerId:playerId
+    	)
+    	$player:PlayerDTO(
+    		id==$playerId
 	    	,$advances:advances
 	    	,$cityIds: cities
-	    	,$playerId:id
-	    ) @watch(currentAdvance)
+	    ) @watch(!*)
 	    $city:CityDTO(
 	    	id memberOf $cityIds
 	    	, $cityImprovements:improvements
@@ -112,9 +103,6 @@ rule "Set Enabled Improvements"
     		and $imp:String() from $enabledCityImprovements
     		,$allEnabledImprovements:collectSet($imp)
     	)
-    	AdvanceReached(
-    		playerId==$playerId
-    	)
 	then
 		
 		$imps = new HashSet($allEnabledImprovements);
@@ -126,15 +114,15 @@ end
 
 rule "Set Enabled Unit Types"
 	dialect "mvel"
-	agenda-group "processNewAdvance"
-	lock-on-active true
-	auto-focus true
 	when
-		$player:PlayerDTO( 
-	    	$advances:advances
+		AdvanceReached(
+    		$playerId:playerId
+    	)
+    	$player:PlayerDTO(
+    		id==$playerId
+	    	,$advances:advances
 	    	,$cityIds: cities
-	    	,$playerId: id
-	    ) @watch(currentAdvance)
+	    ) @watch(!*)
 	    $city:CityDTO(
 	    	id memberOf $cityIds
 	    ) @watch(!*)
@@ -145,9 +133,6 @@ rule "Set Enabled Unit Types"
     		) @watch(!*) 
     		and $type:String() from $enabledUnitTypes
     		,$allEnabledUnitTypes:collectSet($type)	
-    	)
-    	AdvanceReached(
-    		playerId==$playerId
     	)
 	then
 		$types = new HashSet($allEnabledUnitTypes);

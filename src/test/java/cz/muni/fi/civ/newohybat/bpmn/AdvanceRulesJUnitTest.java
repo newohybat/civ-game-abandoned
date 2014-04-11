@@ -133,9 +133,9 @@ public class AdvanceRulesJUnitTest extends BaseJUnitTest {
     @Test
     public void testWaitForNewTurnToComplete(){
     	ksession.addEventListener(new DebugAgendaEventListener());
-//    	ksession.addEventListener(new DebugWorkingMemoryEventListener());
-//    	ksession.addEventListener(new DebugProcessEventListener());
-    	// Add mock eventlistener
+    	ksession.addEventListener(new DebugWorkingMemoryEventListener());
+    	ksession.addEventListener(new DebugProcessEventListener());
+//    	// Add mock eventlistener
     	AgendaEventListener ael = mock( AgendaEventListener.class );
     	ksession.addEventListener( ael );
     	// prepare test data

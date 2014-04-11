@@ -21,5 +21,6 @@
       <resource source='classpath:processes/discoveryReached.bpmn' type='BPMN2' />
       <resource source='classpath:processes/setAvailableActions.bpmn' type='BPMN2' />
       <resource source='classpath:processes/turn.bpmn' type='BPMN2' />
+      <resource source='classpath:processes/turnActions.bpmn' type='BPMN2' />
    </add>
 </change-set>
